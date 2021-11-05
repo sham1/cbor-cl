@@ -11,6 +11,7 @@
 		#:string-to-octets
 		#:octets-to-string)
   (:export #:serialize
+	   #:deserialize
 	   #:+true+
 	   #:+false+
 	   #:+null+
