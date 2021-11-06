@@ -61,3 +61,31 @@
 (deftest test-deserialize-18446744073709551615
   (testing "should #(#x1b #xff #xff #xff #xff #xff #xff #xff #xff) deserialize to 18446744073709551615"
     (ok (= 18446744073709551615 (deserialize (make-test-stream #(#x1b #xff #xff #xff #xff #xff #xff #xff #xff)))))))
+
+(deftest test-deserialize-18446744073709551616
+  (testing "should #(#xc2 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00) deserialize to 18446744073709551616"
+    (ok (= 18446744073709551616 (deserialize (make-test-stream #(#xc2 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00)))))))
+
+(deftest test-deserialize--18446744073709551616
+  (testing "should #(#x3b #xff #xff #xff #xff #xff #xff #xff #xff) deserialize to -18446744073709551616"
+    (ok (= -18446744073709551616 (deserialize (make-test-stream #(#x3b #xff #xff #xff #xff #xff #xff #xff #xff)))))))
+
+(deftest test-deserialize--18446744073709551617
+  (testing "should #(#xc3 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00) deserialize to -18446744073709551617"
+    (ok (= -18446744073709551617 (deserialize (make-test-stream #(#xc3 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00)))))))
+
+(deftest test-deserialize--1
+  (testing "should #(#x20) deserialize to -1"
+    (ok (= -1 (deserialize (make-test-stream #(#x20)))))))
+
+(deftest test-deserialize--10
+  (testing "should #(#x29) deserialize to -10"
+    (ok (= -10 (deserialize (make-test-stream #(#x29)))))))
+
+(deftest test-deserialize--100
+  (testing "should #(#x38 #x63) deserialize to -100"
+    (ok (= -100 (deserialize (make-test-stream #(#x38 #x63)))))))
+
+(deftest test-deserialize--1000
+  (testing "should #(#x39 #x03 #xe7) deserialize to -1000"
+    (ok (= -1000 (deserialize (make-test-stream #(#x39 #x03 #xe7)))))))
