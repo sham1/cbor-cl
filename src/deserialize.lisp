@@ -40,11 +40,32 @@
 	 (arr (deserialize-byte-string additional-info stream)))
     (reduce (lambda (acc b) (logior (ash acc 8) b)) arr :initial-value 0)))
 
+(defun deserialize-string (additional-info stream)
+  (let ((bytes (deserialize-byte-string additional-info stream)))
+    (octets-to-string bytes :errorp t :encoding :utf-8)))
+
+(defun deserialize-date-time (stream)
+  (let* ((lead-byte (read-byte stream))
+	 (additional-info (logand lead-byte #b11111))
+	 (date (deserialize-string additional-info stream)))
+    (local-time:parse-rfc3339-timestring date)))
+
+(defun deserialize-epoch-time (stream)
+  (let ((time (deserialize stream)))
+    (unless (or (integerp time) (floatp time))
+      (error 'invalid-message)) ; Epoch time has to be either integers or floats
+
+    (let ((nsecs (* 1000000000 (nth-value 1 (floor time)))))
+      (local-time:unix-to-timestamp (floor time) :nsec nsecs))))
+
 (defun deserialize-tagged (additional-info stream)
   (let ((tag-val (deserialize-uint additional-info stream)))
     (cond ; TODO: Support all tag types
+      ((= tag-val +tag-date-time+) (deserialize-date-time stream))
+      ((= tag-val +tag-epoch-time+) (deserialize-epoch-time stream))
       ((= tag-val +tag-unsigned-bignum+) (deserialize-bignum stream))
-      ((= tag-val +tag-negative-bignum+) (- -1 (deserialize-bignum stream))))))
+      ((= tag-val +tag-negative-bignum+) (- -1 (deserialize-bignum stream)))
+      (t (error 'invalid-message)))))
 
 (defun deserialize-simple-value (additional-info stream)
   (let ((value (deserialize-uint additional-info stream)))
@@ -79,6 +100,7 @@
     (cond
       ((= major-type +major-type-uint+) (deserialize-uint additional-info stream))
       ((= major-type +major-type-nint+) (deserialize-negint additional-info stream))
+      ((= major-type +major-type-str+) (deserialize-string additional-info stream))
       ((= major-type +major-type-tag+) (deserialize-tagged additional-info stream))
       ((= major-type +major-type-simple/float+) (deserialize-simple/float additional-info stream))
       (t (error 'unknown-major-type :major-type major-type)))))

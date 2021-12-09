@@ -4,7 +4,8 @@
   :license "MIT"
   :depends-on ("alexandria"
                "nibbles"
-	       "babel")
+	       "babel"
+	       "local-time")
   :components ((:module "src"
                 :components
                 ((:file "package")

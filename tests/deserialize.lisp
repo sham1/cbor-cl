@@ -119,3 +119,17 @@
     (let ((result (deserialize (make-test-stream #(#xf8 #xff)))))
       (ok (and (typep result 'simple-value)
 	       (eql (simple-value-value result) 255))))))
+
+(deftest test-deserialize-time-rfc3339
+  (testing "should #(#xc0 #x74 #x32 #x30 #x31 #x33 #x2d #x30 #x33 #x2d
+#x32 #x31 #x54 #x32 #x30 #x3a #x30 #x34 #x3a #x30 #x30 #x5a) deserialize to timestamp
+represented by \"2013-03-21T20:04:00Z\""
+    (let ((result (deserialize (make-test-stream #(#xc0 #x74 #x32 #x30 #x31 #x33 #x2d #x30 #x33 #x2d
+						   #x32 #x31 #x54 #x32 #x30 #x3a #x30 #x34 #x3a #x30 #x30 #x5a)))))
+      (ok (local-time:timestamp= result (local-time:parse-rfc3339-timestring "2013-03-21T20:04:00Z"))))))
+
+(deftest test-deserialize-time-epoch
+  (testing "should #(#xc1 #x1a #x51 #x4b #x67 #xb0) deserialize to 1363896240 seconds
+after the UNIX epoch"
+    (let ((result (deserialize (make-test-stream #(#xc1 #x1a #x51 #x4b #x67 #xb0)))))
+      (ok (local-time:timestamp= result (local-time:unix-to-timestamp 1363896240))))))
