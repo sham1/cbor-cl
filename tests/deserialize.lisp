@@ -89,3 +89,21 @@
 (deftest test-deserialize--1000
   (testing "should #(#x39 #x03 #xe7) deserialize to -1000"
     (ok (= -1000 (deserialize (make-test-stream #(#x39 #x03 #xe7)))))))
+
+;; TODO: Add support for floating-point
+
+(deftest test-deserialize-false
+  (testing "should #(#xf4) deserialize to nil"
+    (ok (eql (deserialize (make-test-stream #(#xf4))) +false+))))
+
+(deftest test-deserialize-true
+  (testing "should #(#xf5) deserialize to t"
+    (ok (eql (deserialize (make-test-stream #(#xf5))) +true+))))
+
+(deftest test-deserialize-null
+  (testing "should #(#xf6) deserialize to :null"
+    (ok (eql (deserialize (make-test-stream #(#xf6))) +null+))))
+
+(deftest test-deserialize-undefined
+  (testing "should #(#xf7) deserialize to :undefined"
+    (ok (eql (deserialize (make-test-stream #(#xf7))) +undefined+))))

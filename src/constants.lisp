@@ -41,9 +41,5 @@
 (defconstant +true+ 't)
 (defconstant +false+ nil)
 
-;; Has to be done this way so we can distinguish them from NIL
-(defclass <null> () ())
-(defclass <undefined> () ())
-
-(defconstant +null+ (make-instance '<null>))
-(defconstant +undefined+ (make-instance '<undefined>))
+(defconstant +null+ :null)
+(defconstant +undefined+ :undefined)

@@ -3,7 +3,8 @@
 (define-condition deserialization-error (error) ())
 
 (define-condition unknown-major-type (deserialization-error)
-  ((major-type :accessor unknown-major-type-major-type))
+  ((major-type :accessor unknown-major-type-major-type
+	       :initarg :major-type))
   (:report
    (lambda (condition stream)
      (format stream "Unknown major type ~D.~&" (unknown-major-type-major-type condition)))))
@@ -45,6 +46,31 @@
       ((= tag-val +tag-unsigned-bignum+) (deserialize-bignum stream))
       ((= tag-val +tag-negative-bignum+) (- -1 (deserialize-bignum stream))))))
 
+(defun deserialize-simple-value (additional-info stream)
+  (let ((value (deserialize-uint additional-info stream)))
+    (cond
+      ((= value 20) +false+)
+      ((= value 21) +true+)
+      ((= value 22) +null+)
+      ((= value 23) +undefined+)
+      (t (error 'invalid-message)))))
+
+(defun deserialize-simple/float (additional-info stream)
+  (cond
+    ((<= additional-info +additional-info-1-byte+) ; Simple values
+     (deserialize-simple-value additional-info stream))
+
+    ((= additional-info +additional-info-2-byte+) ; TODO: Support floats
+     nil)
+    ((= additional-info +additional-info-4-byte+) ; TODO: Support floats
+     nil)
+    ((= additional-info +additional-info-8-byte+) ; TODO: Support floats
+     nil)
+
+    ((= additional-info +additional-info-no-value+)
+     :break)
+    (t (error 'invalid-message))))
+
 (defun deserialize (stream)
   "Reads a CBOR value from ``stream'' and returns it or signals a ``deserialization-error''"
   (let* ((lead-byte (read-byte stream))
@@ -54,4 +80,5 @@
       ((= major-type +major-type-uint+) (deserialize-uint additional-info stream))
       ((= major-type +major-type-nint+) (deserialize-negint additional-info stream))
       ((= major-type +major-type-tag+) (deserialize-tagged additional-info stream))
+      ((= major-type +major-type-simple/float+) (deserialize-simple/float additional-info stream))
       (t (error 'unknown-major-type :major-type major-type)))))
