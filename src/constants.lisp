@@ -37,6 +37,15 @@
 ;;; Special values
 (defconstant +break+ #xFF) ; Major type 7, "additional information": 31
 
+;;; Simple values
+(defclass simple-value ()
+  ((value :initarg :value
+	  :accessor simple-value-value)))
+(defmethod print-object ((object simple-value) stream)
+  (with-slots (value) object
+    (print-unreadable-object (object stream :type t)
+      (format stream ":VALUE ~A" value))))
+
 ;;; User-exposed constants
 (defconstant +true+ 't)
 (defconstant +false+ nil)

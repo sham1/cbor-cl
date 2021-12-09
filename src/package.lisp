@@ -15,4 +15,7 @@
 	   #:+true+
 	   #:+false+
 	   #:+null+
-	   #:+undefined+))
+	   #:+undefined+
+
+	   #:simple-value
+	   #:simple-value-value))

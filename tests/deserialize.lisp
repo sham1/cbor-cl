@@ -107,3 +107,15 @@
 (deftest test-deserialize-undefined
   (testing "should #(#xf7) deserialize to :undefined"
     (ok (eql (deserialize (make-test-stream #(#xf7))) +undefined+))))
+
+(deftest test-deserialize-simple-16
+  (testing "should #(#xf0) deserialize to #<simple 16>"
+    (let ((result (deserialize (make-test-stream #(#xf0)))))
+      (ok (and (typep result 'simple-value)
+	       (eql (simple-value-value result) 16))))))
+
+(deftest test-deserialize-simple-255
+  (testing "should #(#xf8 #xff) deserialize to #<simple 255>"
+    (let ((result (deserialize (make-test-stream #(#xf8 #xff)))))
+      (ok (and (typep result 'simple-value)
+	       (eql (simple-value-value result) 255))))))

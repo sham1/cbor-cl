@@ -53,7 +53,7 @@
       ((= value 21) +true+)
       ((= value 22) +null+)
       ((= value 23) +undefined+)
-      (t (error 'invalid-message)))))
+      (t (make-instance 'simple-value :value value)))))
 
 (defun deserialize-simple/float (additional-info stream)
   (cond
