@@ -58,6 +58,12 @@
     (let ((nsecs (* 1000000000 (nth-value 1 (floor time)))))
       (local-time:unix-to-timestamp (floor time) :nsec nsecs))))
 
+(defun deserialize-inner-cbor (stream)
+  (let ((byte-string (deserialize-byte-string (logand (read-byte stream)
+						      #b11111)
+					      stream)))
+    byte-string))
+
 (defun deserialize-tagged (additional-info stream)
   (let ((tag-val (deserialize-uint additional-info stream)))
     (cond ; TODO: Support all tag types
@@ -65,6 +71,10 @@
       ((= tag-val +tag-epoch-time+) (deserialize-epoch-time stream))
       ((= tag-val +tag-unsigned-bignum+) (deserialize-bignum stream))
       ((= tag-val +tag-negative-bignum+) (- -1 (deserialize-bignum stream)))
+      ((= tag-val +tag-data-expected-base16+) (deserialize-byte-string
+					       (logand (read-byte stream) #b11111)
+					       stream))
+      ((= tag-val +tag-encoded-cbor-datum+) (deserialize-inner-cbor stream))
       (t (error 'invalid-message)))))
 
 (defun deserialize-simple-value (additional-info stream)
