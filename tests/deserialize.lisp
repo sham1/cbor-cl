@@ -134,14 +134,33 @@ after the UNIX epoch"
     (let ((result (deserialize (make-test-stream #(#xc1 #x1a #x51 #x4b #x67 #xb0)))))
       (ok (local-time:timestamp= result (local-time:unix-to-timestamp 1363896240))))))
 
+(deftest test-deserialize-base64url
+  (testing "should #(#xd5 #x44 #x01 #x02 #x03 #x04) deserialize to byte array
+#(#x01 #x02 #x03 #x04), while having a hint for text serialization to be done as base64url"
+    (let ((result (deserialize (make-test-stream #(#xd5 #x44 #x01 #x02 #x03 #x04)))))
+      (ok (typep result 'base64url-data))
+      (ok (equalp (base64url-data-content result)
+		  #(#x01 #x02 #x03 #x04))))))
+
+(deftest test-deserialize-base64
+  (testing "should #(#xd6 #x44 #x01 #x02 #x03 #x04) deserialize to byte array
+#(#x01 #x02 #x03 #x04), while having a hint for text serialization to be done as base64"
+    (let ((result (deserialize (make-test-stream #(#xd6 #x44 #x01 #x02 #x03 #x04)))))
+      (ok (typep result 'base64-data))
+      (ok (equalp (base64-data-content result)
+		  #(#x01 #x02 #x03 #x04))))))
+
 (deftest test-deserialize-base16
   (testing "should #(#xd7 #x44 #x01 #x02 #x03 #x04) deserialize to byte array
 #(#x01 #x02 #x03 #x04), while having a hint for text serialization to be done as base16"
     (let ((result (deserialize (make-test-stream #(#xd7 #x44 #x01 #x02 #x03 #x04)))))
-      (ok (equalp result #(#x01 #x02 #x03 #x04))))))
+      (ok (typep result 'base16-data))
+      (ok (equalp (base16-data-content result)
+		  #(#x01 #x02 #x03 #x04))))))
 
 (deftest test-deserialize-encoded-cbor
   (testing "should #(#xd8 #x18 #x45 #x64 #x49 #x45 #x54 #x46) deserialize to byte array
 #(#x64 #x49 #x45 #x54 #x46), which represents nested CBOR data"
     (let ((result (deserialize (make-test-stream #(#xd8 #x18 #x45 #x64 #x49 #x45 #x54 #x46)))))
-      (ok (equalp result #(#x64 #x49 #x45 #x54 #x46))))))
+      (ok (typep result 'nested-cbor))
+      (ok (equalp (nested-cbor-data result) #(#x64 #x49 #x45 #x54 #x46))))))

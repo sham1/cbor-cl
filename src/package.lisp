@@ -18,4 +18,16 @@
 	   #:+undefined+
 
 	   #:simple-value
-	   #:simple-value-value))
+	   #:simple-value-value
+
+	   #:base64url-data
+	   #:base64url-data-content
+
+	   #:base64-data
+	   #:base64-data-content
+
+	   #:base16-data
+	   #:base16-data-content
+
+	   #:nested-cbor
+	   #:nested-cbor-data))

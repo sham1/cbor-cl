@@ -46,6 +46,45 @@
     (print-unreadable-object (object stream :type t)
       (format stream ":VALUE ~A" value))))
 
+;;; Tag hint types
+(defclass base64url-data ()
+  ((content :initarg :content
+	    :accessor base64url-data-content
+	    :type (array (unsigned-byte 8) *)
+	    :documentation
+	    "Content to be represented"))
+  (:documentation
+   "Represents byte-strings that should be encoded using
+base64url encoding from RFC4648 when serializing as text"))
+
+(defclass base64-data ()
+  ((content :initarg :content
+	    :accessor base64-data-content
+	    :type (array (unsigned-byte 8) *)
+	    :documentation
+	    "Content to be represented"))
+  (:documentation
+   "Represents byte-strings that should be encoded using
+base64 encoding from RFC4648 when serializing as text"))
+
+(defclass base16-data ()
+  ((content :initarg :content
+	    :accessor base16-data-content
+	    :type (array (unsigned-byte 8) *)
+	    :documentation
+	    "Content to be represented"))
+  (:documentation
+   "Represents byte-strings that should be encoded using
+base16 encoding from RFC4648 when serializing as text"))
+
+(defclass nested-cbor ()
+  ((data :initarg :data
+	 :accessor nested-cbor-data
+	 :type (array (unsigned-byte 8) *)))
+  (:documentation
+   "Represents byte-strings that contain
+nested CBOR data"))
+
 ;;; User-exposed constants
 (defconstant +true+ 't)
 (defconstant +false+ nil)
