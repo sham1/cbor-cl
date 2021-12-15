@@ -164,3 +164,13 @@ after the UNIX epoch"
     (let ((result (deserialize (make-test-stream #(#xd8 #x18 #x45 #x64 #x49 #x45 #x54 #x46)))))
       (ok (typep result 'nested-cbor))
       (ok (equalp (nested-cbor-data result) #(#x64 #x49 #x45 #x54 #x46))))))
+
+(deftest test-deserialize-empty-bytevector
+  (testing "should #(#x40) deserialize to an empty byte array"
+    (let ((result (deserialize (make-test-stream #(#x40)))))
+      (ok (equalp result #())))))
+
+(deftest test-deserialize-populated-bytevector
+  (testing "should #(#x44 #x01 #x02 #x03 #x04) deserialize to byte array #(#x01 #x02 #x03 #x04)"
+    (let ((result (deserialize (make-test-stream #(#x44 #x01 #x02 #x03 #x04)))))
+      (ok (equalp result #(#x01 #x02 #x03 #x04))))))

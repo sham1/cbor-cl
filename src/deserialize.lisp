@@ -124,6 +124,7 @@
     (cond
       ((= major-type +major-type-uint+) (deserialize-uint additional-info stream))
       ((= major-type +major-type-nint+) (deserialize-negint additional-info stream))
+      ((= major-type +major-type-octet-str+) (deserialize-byte-string additional-info stream))
       ((= major-type +major-type-str+) (deserialize-string additional-info stream))
       ((= major-type +major-type-tag+) (deserialize-tagged additional-info stream))
       ((= major-type +major-type-simple/float+) (deserialize-simple/float additional-info stream))
