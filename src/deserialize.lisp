@@ -83,6 +83,15 @@
       (setf (aref arr i) (deserialize stream)))
     arr))
 
+(defun deserialize-map (additional-info stream)
+  (let* ((len (get-additional-info additional-info stream))
+	 (map (make-hash-table :test #'equal)))
+    (dotimes (i len)
+      (let ((key (deserialize stream))
+	    (value (deserialize stream)))
+	(setf (gethash key map) value)))
+    map))
+
 (defun deserialize-tagged (additional-info stream)
   (let ((tag-val (deserialize-uint additional-info stream)))
     (cond ; TODO: Support all tag types
@@ -134,6 +143,7 @@
       ((= major-type +major-type-octet-str+) (deserialize-byte-string additional-info stream))
       ((= major-type +major-type-str+) (deserialize-string additional-info stream))
       ((= major-type +major-type-seq+) (deserialize-array additional-info stream))
+      ((= major-type +major-type-map+) (deserialize-map additional-info stream))
       ((= major-type +major-type-tag+) (deserialize-tagged additional-info stream))
       ((= major-type +major-type-simple/float+) (deserialize-simple/float additional-info stream))
       (t (error 'unknown-major-type :major-type major-type)))))

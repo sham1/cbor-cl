@@ -233,3 +233,50 @@ after the UNIX epoch"
 							    #x0b #x0c #x0d #x0e #x0f #x10 #x11 #x12 #x13 #x14 #x15 #x16
 							    #x17 #x18 #x18 #x18 #x19)))))
 	       (ok (equalp result #(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25))))))
+
+(deftest test-deserialize-empty-map
+  (testing "should #(#xa0) deserialize to an empty map"
+    (let ((result (deserialize (make-test-stream #(#xa0)))))
+      (ok (hash-table-p result))
+      (ok (zerop (hash-table-count result))))))
+
+(deftest test-deserialize-map-simple
+  (testing "should #(#xa2 #x01 #x02 #x03 #x04) deserialize to map {1: 2, 3: 4}"
+    (let ((result (deserialize (make-test-stream #(#xa2 #x01 #x02 #x03 #x04))))
+	  (expected (make-hash-table :test #'equal)))
+      (setf (gethash 1 expected) 2)
+      (setf (gethash 3 expected) 4)
+      (ok (equalp result expected)))))
+
+(deftest test-deserialize-map-complex
+  (testing "should #(#xa2 #x61 #6x1 #x01 #x61 #x62 #x82 #x02 #x03)
+deserialize to map {\"a\": 1, \"b\": #(2 3)}"
+    (let ((result (deserialize (make-test-stream #(#xa2 #x61 #x61 #x01 #x61 #x62 #x82 #x02 #x03))))
+	  (expected (make-hash-table :test #'equal)))
+      (setf (gethash "a" expected) 1)
+      (setf (gethash "b" expected) #(2 3))
+      (ok (equalp result expected)))))
+
+(deftest test-deserialize-array-map
+  (testing "should #(#x82 #x61 #x61 #xa1 #x61 #x62 #x61 #x63) deserialize to an array with map
+#(\"a\" {\"b\": \"c\"})"
+    (let* ((result (deserialize (make-test-stream #(#x82 #x61 #x61 #xa1 #x61 #x62 #x61 #x63))))
+	   (nested-map (make-hash-table :test #'equal))
+	   (expected `#("a" ,nested-map)))
+      (setf (gethash "b" nested-map) "c")
+      (ok (equalp result expected)))))
+
+(deftest test-deserialize-map-large
+  (testing "should #(#xa5 #x61 #x61 #x61 #x41 #x61 #x62 #x61 #x42 #x61 #x63 #x61 #x43 #x61 #x64 #x61 #x44 #x61 #x65 #x61 #x45)
+deserialize to {\"a\": \"A\", \"b\": \"B\", \"c\": \"C\", \"d\": \"D\", \"e\": \"E\"}"
+    (let ((result (deserialize (make-test-stream #(#xa5 #x61 #x61 #x61 #x41
+						   #x61 #x62 #x61 #x42 #x61
+						   #x63 #x61 #x43 #x61 #x64
+						   #x61 #x44 #x61 #x65 #x61 #x45))))
+	  (expected (make-hash-table :test #'equal)))
+      (setf (gethash "a" expected) "A")
+      (setf (gethash "b" expected) "B")
+      (setf (gethash "c" expected) "C")
+      (setf (gethash "d" expected) "D")
+      (setf (gethash "e" expected) "E")
+      (ok (equalp result expected)))))
