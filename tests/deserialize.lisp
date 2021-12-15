@@ -209,3 +209,27 @@ after the UNIX epoch"
   (testing "should #(#x64 #xf0 #x90 #x85 #x91) deserialize to the string \"𐅑\" from surrogate pairs"
     (let ((result (deserialize (make-test-stream #(#x64 #xf0 #x90 #x85 #x91)))))
       (ok (string-equal result "𐅑")))))
+
+(deftest test-deserialize-empty-array
+  (testing "should #(#x80) deserialize to an empty array"
+    (let ((result (deserialize (make-test-stream #(#x80)))))
+      (ok (equalp result #())))))
+
+(deftest test-deserialize-array-simple-populated
+  (testing "should #(x83 #x01 #x02 #x03) deserialize to the array #(1 2 3)"
+    (let ((result (deserialize (make-test-stream #(#x83 #x01 #x02 #x03)))))
+      (ok (equalp result #(1 2 3))))))
+
+(deftest test-deserialize-array-nested
+  (testing "should #(#x83 #x01 #x82 #x02 #x03 #x82 #x04 #x05) deserialize to the array #(1 #(2 3) #(4 5))"
+    (let ((result (deserialize (make-test-stream #(#x83 #x01 #x82 #x02 #x03 #x82 #x04 #x05)))))
+      (ok (equalp result #(1 #(2 3) #(4 5)))))))
+
+(deftest test-deserialize-array-large
+    (testing "should #(#x98 #x19 #x01 #x02 #x03 #x04 #x05 #x06 #x07 #x08 #x09 #x0a #x0b #x0c #x0d
+#x0e #x0f #x10 #x11 #x12 #x13 #x14 #x15 #x16 #x17 #x18 #x18 #x18 #x19) deserialize to the array
+#(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)"
+	     (let ((result (deserialize (make-test-stream #(#x98 #x19 #x01 #x02 #x03 #x04 #x05 #x06 #x07 #x08 #x09 #x0a
+							    #x0b #x0c #x0d #x0e #x0f #x10 #x11 #x12 #x13 #x14 #x15 #x16
+							    #x17 #x18 #x18 #x18 #x19)))))
+	       (ok (equalp result #(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25))))))

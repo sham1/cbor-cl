@@ -76,6 +76,13 @@
       ((= type +tag-data-expected-base16+)
        (make-instance 'base16-data :content data)))))
 
+(defun deserialize-array (additional-info stream)
+  (let* ((len (get-additional-info additional-info stream))
+	 (arr (make-array len)))
+    (loop for i from 0 below len do
+      (setf (aref arr i) (deserialize stream)))
+    arr))
+
 (defun deserialize-tagged (additional-info stream)
   (let ((tag-val (deserialize-uint additional-info stream)))
     (cond ; TODO: Support all tag types
@@ -126,6 +133,7 @@
       ((= major-type +major-type-nint+) (deserialize-negint additional-info stream))
       ((= major-type +major-type-octet-str+) (deserialize-byte-string additional-info stream))
       ((= major-type +major-type-str+) (deserialize-string additional-info stream))
+      ((= major-type +major-type-seq+) (deserialize-array additional-info stream))
       ((= major-type +major-type-tag+) (deserialize-tagged additional-info stream))
       ((= major-type +major-type-simple/float+) (deserialize-simple/float additional-info stream))
       (t (error 'unknown-major-type :major-type major-type)))))
