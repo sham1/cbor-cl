@@ -280,3 +280,84 @@ deserialize to {\"a\": \"A\", \"b\": \"B\", \"c\": \"C\", \"d\": \"D\", \"e\": \
       (setf (gethash "d" expected) "D")
       (setf (gethash "e" expected) "E")
       (ok (equalp result expected)))))
+
+(deftest test-deserialize-streaming-bytevector
+  (testing "should #(#x5f #x42 #x01 #x02 #x43 #x03 #x04 #x05 #xff) deserialize to
+byte array #(#x01 #x02 #x03 #x04 #x05) while being indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#x5f #x42 #x01 #x02 #x43 #x03 #x04 #x05 #xff)))))
+      (ok (equalp result #(#x01 #x02 #x03 #x04 #x05))))))
+
+(deftest test-deserialize-streaming-string
+  (testing "should #(#x7f #x65 #x73 #x74 #x72 #x65 #x61 #x64 #x6d #x69 #x6e #x67 #xff) deserialize to
+string \"streaming\" while being indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#x7f #x65 #x73 #x74 #x72 #x65 #x61 #x64 #x6d #x69 #x6e #x67 #xff)))))
+      (ok (string-equal result "streaming")))))
+
+(deftest test-deserialize-streaming-empty-array
+  (testing "should #(#x9f #xff) deserialize to an empty array while being indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#x9f #xff)))))
+      (ok (equalp result #())))))
+
+(deftest test-deserialize-streaming-nested-streaming-array
+  (testing "should #(#x9f #x01 #x82 #x02 #x03 #x9f #x04 #x05 #xff #xff) deserialize to
+#(1 #(2 3) #(4 5)) while being indeterminate length and having both indeterminate
+and determinate length nested arrays"
+    (let ((result (deserialize (make-test-stream #(#x9f #x01 #x82 #x02 #x03 #x9f #x04 #x05 #xff #xff)))))
+      (ok (equalp result #(1 #(2 3) #(4 5)))))))
+
+(deftest test-deserialize-streaming-nested-array
+  (testing "should #(#x9f #x01 #x82 #x02 #x03 #x82 #x04 #x05 #xff) deserialize to
+#(1 #(2 3) #(4 5)) while being indeterminate length and determinate length nested arrays"
+    (let ((result (deserialize (make-test-stream #(#x9f #x01 #x82 #x02 #x03 #x82 #x04 #x05 #xff)))))
+      (ok (equalp result #(1 #(2 3) #(4 5)))))))
+
+(deftest test-deserialize-streaming-nested-array-2
+  (testing "should #(#x83 #x01 #x82 #x02 #x03 #x9f #x04 #x05 #xff) deserialize to
+#(1 #(2 3) #(4 5)) while the second nested array is indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#x83 #x01 #x82 #x02 #x03 #x9f #x04 #x05 #xff)))))
+      (ok (equalp result #(1 #(2 3) #(4 5)))))))
+
+(deftest test-deserialize-streaming-nested-array-3
+  (testing "should #(#x83 #x01 #x9f #x02 #x03 #xff #x82 #x04 #x05) deserialize to
+#(1 #(2 3) #(4 5)) while the first nested array is indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#x83 #x01 #x9f #x02 #x03 #xff #x82 #x04 #x05)))))
+      (ok (equalp result #(1 #(2 3) #(4 5)))))))
+
+(deftest test-deserialize-streaming-long-array
+  (testing "should #(#x9f #x01 #x02 #x03 #x04 #x05 #x06 #x07 #x08
+#x09 #x0a #x0b #x0c #x0d #x0e #x0f #x10 #x11 #x12 #x13 #x14 #x15 #x16
+#x17 #x18 #x18 #x18 #x19 #xff) deserialize to array #(1 2 3 4 5 6 7 8 9 10
+11 12 13 14 15 16 17 18 19 20 21 22 23 24 25) while being indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#x9f #x01 #x02 #x03 #x04 #x05 #x06 #x07
+						   #x08 #x09 #x0a #x0b #x0c #x0d #x0e #x0f
+						   #x10 #x11 #x12 #x13 #x14 #x15 #x16 #x17
+						   #x18 #x18 #x18 #x19 #xff)))))
+      (ok (equalp result #(1 2 3 4 5 6 7 8 9 10
+			   11 12 13 14 15 16 17
+			   18 19 20 21 22 23 24 25))))))
+
+(deftest test-deserialize-streaming-map
+  (testing "should #(#xbf #x61 #x61 #x01 #x61 #x62 #x9f #x02 #x03 #xff #xff) deserialize
+to map {\"a\": 1, \"b\": #(2 3)} while being indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#xbf #x61 #x61 #x01 #x61 #x62 #x9f #x02 #x03 #xff #xff))))
+	  (expected (make-hash-table :test #'equal)))
+      (setf (gethash "a" expected) 1)
+      (setf (gethash "b" expected) #(2 3))
+      (ok (equalp result expected)))))
+
+(deftest test-deserialize-streaming-array-map
+  (testing "should #(#x82 #x61 #x61 #xbf #x61 #x62 #x61 #x63 #xff) deserialize to array
+#(\"a\" {\"b\": \"c\"}) while the inner map is indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#x82 #x61 #x61 #xbf #x61 #x62 #x61 #x63 #xff))))
+	  (inner-map (make-hash-table :test #'equal)))
+      (setf (gethash "b" inner-map) "c")
+      (ok (equalp result `#("a" ,inner-map))))))
+
+(deftest test-deserialize-streaming-map-2
+  (testing "should #(#xbf #x63 #x46 #x75 #x6e #xf5 #x63 #x41 #x6d #x74 #x21 #xff)
+deserialize to map {\"Fun\": true, \"Amt\": -2} while being indeterminate length"
+    (let ((result (deserialize (make-test-stream #(#xbf #x63 #x46 #x75 #x6e #xf5 #x63 #x41 #x6d #x74 #x21 #xff))))
+	  (expected (make-hash-table :test #'equal)))
+      (setf (gethash "Fun" expected) +true+)
+      (setf (gethash "Amt" expected) -2)
+      (ok (equalp result expected)))))
