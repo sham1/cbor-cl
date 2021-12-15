@@ -174,3 +174,38 @@ after the UNIX epoch"
   (testing "should #(#x44 #x01 #x02 #x03 #x04) deserialize to byte array #(#x01 #x02 #x03 #x04)"
     (let ((result (deserialize (make-test-stream #(#x44 #x01 #x02 #x03 #x04)))))
       (ok (equalp result #(#x01 #x02 #x03 #x04))))))
+
+(deftest test-deserialize-empty-string
+  (testing "should #(#x60) deserialize to an empty string"
+    (let ((result (deserialize (make-test-stream #(#x60)))))
+      (ok (string-equal result "")))))
+
+(deftest test-deserialize-string-a
+  (testing "should #(#x61 #x61) deserialize to the string \"a\""
+    (let ((result (deserialize (make-test-stream #(#x61 #x61)))))
+      (ok (string-equal result "a")))))
+
+(deftest test-deserialize-string-IETF
+  (testing "should #(#x64 #x49 #x45 #x54 #x46) deserialize to the string \"IETF\""
+    (let ((result (deserialize (make-test-stream #(#x64 #x49 #x45 #x54 #x46)))))
+      (ok (string-equal result "IETF")))))
+
+(deftest test-deserialize-string-escapes
+  (testing "should #(#x62 #x22 #x5c) deserialize to the string \"\\\"\\\\\""
+    (let ((result (deserialize (make-test-stream #(#x62 #x22 #x5c)))))
+      (ok (string-equal result "\"\\")))))
+
+(deftest test-deserialize-string-unicode
+  (testing "should #(#x62 #xc3 #xbc) deserialize to the string \"ü\""
+    (let ((result (deserialize (make-test-stream #(#x62 #xc3 #xbc)))))
+      (ok (string-equal result "ü")))))
+
+(deftest test-deserialize-string-ideograph
+  (testing "should #(#x63 #xe6 #xb0 #xb4) deserialize to the string \"水\""
+    (let ((result (deserialize (make-test-stream #(#x63 #xe6 #xb0 #xb4)))))
+      (ok (string-equal result "水")))))
+
+(deftest test-deserialize-string-surrogate
+  (testing "should #(#x64 #xf0 #x90 #x85 #x91) deserialize to the string \"𐅑\" from surrogate pairs"
+    (let ((result (deserialize (make-test-stream #(#x64 #xf0 #x90 #x85 #x91)))))
+      (ok (string-equal result "𐅑")))))
