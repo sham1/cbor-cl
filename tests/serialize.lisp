@@ -212,3 +212,31 @@
     (let ((stream (make-in-memory-output-stream)))
       (serialize stream "𐅑")
       (ok (equalp #(#x64 #xf0 #x90 #x85 #x91) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-empty-array
+  (testing "should an empty array serialize to #(#x80)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream #())
+      (ok (equalp #(#x80) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-array-simple-populated
+  (testing "should an array #(1 2 3) serialize to #(#x83 #x01 #x02 #x03)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream #(1 2 3))
+      (ok (equalp #(#x83 #x01 #x02 #x03) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-array-nested
+  (testing "should an array #(1 #(2 3) #(4 5)) serialize to #(#x83 #x01 #x82 #x02 #x03 #x82 #x04 #x05)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream #(1 #(2 3) #(4 5)))
+      (ok (equalp #(#x83 #x01 #x82 #x02 #x03 #x82 #x04 #x05) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-array-large
+  (testing "should an array #(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
+serialize to #(#x98 #x19 #x01 #x02 #x03 #x04 #x05 #x06 #x07 #x08 #x09 #x0a #x0b #x0c #x0d
+#x0e #x0f #x10 #x11 #x12 #x13 #x14 #x15 #x16 #x17 #x18 #x18 #x18 #x19)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream #(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25))
+      (ok (equalp #(#x98 #x19 #x01 #x02 #x03 #x04 #x05 #x06 #x07 #x08 #x09 #x0a #x0b #x0c #x0d
+		    #x0e #x0f #x10 #x11 #x12 #x13 #x14 #x15 #x16 #x17 #x18 #x18 #x18 #x19)
+		  (get-output-stream-sequence stream))))))
