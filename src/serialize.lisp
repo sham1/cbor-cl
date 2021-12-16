@@ -50,3 +50,18 @@
      (serialize-tag +tag-negative-bignum+ stream)
      (serialize stream (bignum-to-byte-array (- (1+ object)))))
     (t (encode-type-info-additional-info +major-type-nint+ (- (1+ object)) stream))))
+
+(defmethod serialize (stream (object (eql +false+)))
+  (encode-type-info-additional-info +major-type-simple/float+ 20 stream))
+
+(defmethod serialize (stream (object (eql +true+)))
+  (encode-type-info-additional-info +major-type-simple/float+ 21 stream))
+
+(defmethod serialize (stream (object (eql +null+)))
+  (encode-type-info-additional-info +major-type-simple/float+ 22 stream))
+
+(defmethod serialize (stream (object (eql +undefined+)))
+  (encode-type-info-additional-info +major-type-simple/float+ 23 stream))
+
+(defmethod serialize (stream (object simple-value))
+  (encode-type-info-additional-info +major-type-simple/float+ (simple-value-value object) stream))

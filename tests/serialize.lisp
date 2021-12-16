@@ -118,3 +118,42 @@
     (let ((stream (make-in-memory-output-stream)))
       (serialize stream -1000)
       (ok (equalp #(#x39 #x03 #xe7) (get-output-stream-sequence stream))))))
+
+;; TODO: Add support for floating-point
+
+(deftest test-serialize-false
+  (testing "should nil serialize to #(#xf4)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream +false+)
+      (ok (equalp #(#xf4) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-true
+  (testing "should t serialize to #(#xf5)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream +true+)
+      (ok (equalp #(#xf5) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-null
+  (testing "should :null serialize to #(#xf6)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream +null+)
+      (ok (equalp #(#xf6) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-undefined
+  (testing "should nil serialize to #(#xf7)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream +undefined+)
+      (ok (equalp #(#xf7) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-simple-16
+  (testing "should #<simple 16> serialize to #(#xf0)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream (make-instance 'simple-value :value 16))
+      (ok (equalp #(#xf0) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-simple-255
+  (testing "should #<simple 255> serialize to #(#xf8 #xff)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream (make-instance 'simple-value :value 255))
+      (ok (equalp #(#xf8 #xff) (get-output-stream-sequence stream))))))
+
