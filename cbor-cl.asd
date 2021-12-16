@@ -10,7 +10,8 @@
                 :components
                 ((:file "package")
 		 (:file "constants" :depends-on ("package"))
-		 (:file "deserialize" :depends-on ("package" "constants")))))
+		 (:file "deserialize" :depends-on ("package" "constants"))
+		 (:file "serialize" :depends-on ("package" "constants")))))
   :description ""
   :in-order-to ((test-op (test-op "cbor-cl/tests"))))
 
@@ -22,6 +23,7 @@
                "rove")
   :components ((:module "tests"
                 :components
-                ((:file "deserialize"))))
+                ((:file "deserialize")
+		 (:file "serialize"))))
   :description "Test system for cbor-cl"
   :perform (test-op (op c) (symbol-call :rove :run c)))

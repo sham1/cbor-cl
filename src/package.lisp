@@ -4,8 +4,8 @@
 		#:read-ub16/be
 		#:read-ub32/be
 		#:read-ub64/be
-		#:write-ub64/be
-		#:write-ub64/be
+		#:write-ub16/be
+		#:write-ub32/be
 		#:write-ub64/be)
   (:import-from #:babel
 		#:string-to-octets
