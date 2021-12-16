@@ -36,6 +36,10 @@
     ((subtypep (array-element-type object) '(unsigned-byte 8))
      (encode-type-info-additional-info +major-type-octet-str+ (length object) stream)
      (write-sequence object stream))))
+(defmethod serialize (stream (object string))
+  (let ((encoded (string-to-octets object :encoding :utf-8 :errorp t)))
+    (encode-type-info-additional-info +major-type-str+ (length encoded) stream)
+    (write-sequence encoded stream)))
 
 (defmethod serialize (stream (object integer))
   (cond

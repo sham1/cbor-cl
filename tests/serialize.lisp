@@ -170,3 +170,45 @@
     (let ((stream (make-in-memory-output-stream)))
       (serialize stream (make-array 4 :element-type '(unsigned-byte 8) :initial-contents #(#x01 #x02 #x03 #x04)))
       (ok (equalp #(#x44 #x01 #x02 #x03 #x04) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-empty-string
+  (testing "should an empty string serialize to #(#x60)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream "")
+      (ok (equalp #(#x60) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-string-a
+  (testing "should a string \"a\" serialize to #(#x61 #x61)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream "a")
+      (ok (equalp #(#x61 #x61) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-string-IETF
+  (testing "should a string \"IETF\" serialize to #(#x64 #x49 #x45 #x54 #x46)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream "IETF")
+      (ok (equalp #(#x64 #x49 #x45 #x54 #x46) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-string-escapes
+  (testing "should a string \"\\\"\\\\\" serialize to #(#x62 #x22 #x5c)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream "\"\\")
+      (ok (equalp #(#x62 #x22 #x5c) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-string-unicode
+  (testing "should a string \"ü\" serialize to #(#x62 #xc3 #xbc)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream "ü")
+      (ok (equalp #(#x62 #xc3 #xbc) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-string-ideograph
+  (testing "should a string \"水\" serialize to #(#x63 #xe6 #xb0 #xb4)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream "水")
+      (ok (equalp #(#x63 #xe6 #xb0 #xb4) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-string-surrogate
+  (testing "should a string \"𐅑\" serialize to #(#x64 #xf0 #x90 #x85 #x91)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream "𐅑")
+      (ok (equalp #(#x64 #xf0 #x90 #x85 #x91) (get-output-stream-sequence stream))))))
