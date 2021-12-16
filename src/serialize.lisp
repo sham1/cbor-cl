@@ -45,6 +45,13 @@
     (encode-type-info-additional-info +major-type-str+ (length encoded) stream)
     (write-sequence encoded stream)))
 
+(defmethod serialize (stream (object hash-table))
+  (encode-type-info-additional-info +major-type-map+ (hash-table-count object) stream)
+  (loop for key being the hash-key
+	  using (hash-value value) of object do
+	    (serialize stream key)
+	    (serialize stream value)))
+
 (defmethod serialize (stream (object integer))
   (cond
     ;; Non-negatives

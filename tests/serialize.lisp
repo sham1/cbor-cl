@@ -240,3 +240,56 @@ serialize to #(#x98 #x19 #x01 #x02 #x03 #x04 #x05 #x06 #x07 #x08 #x09 #x0a #x0b 
       (ok (equalp #(#x98 #x19 #x01 #x02 #x03 #x04 #x05 #x06 #x07 #x08 #x09 #x0a #x0b #x0c #x0d
 		    #x0e #x0f #x10 #x11 #x12 #x13 #x14 #x15 #x16 #x17 #x18 #x18 #x18 #x19)
 		  (get-output-stream-sequence stream))))))
+
+;;; With maps, we need to rely on `deserialize' working properly,
+;;; since the serialized fields could be in any order within the
+;;; stream.
+(deftest test-serialize-empty-map
+  (testing "should an empty map serialize to #(#a0)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream (make-hash-table))
+      (ok (equalp #(#xa0) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-map-simple
+  (testing "should a map {1: 2, 3: 4} serialize to #(#a2 #x01 #x02 #x03 #x04)"
+    (let ((stream (make-in-memory-output-stream))
+	  (map (make-hash-table :test 'equal)))
+      (setf (gethash 1 map) 2)
+      (setf (gethash 3 map) 4)
+
+      (serialize stream map)
+      (ok (equalp map (deserialize (make-in-memory-input-stream (get-output-stream-sequence stream))))))))
+
+(deftest test-serialize-map-complex
+  (testing "should a map {\"a\": 1, \"b\": #(2 3)} serialize to #(#xa2 #x61 #6x1 #x01 #x61 #x62 #x82 #x02 #x03)"
+    (let ((stream (make-in-memory-output-stream))
+	  (map (make-hash-table :test 'equal)))
+      (setf (gethash "a" map) 1)
+      (setf (gethash "b" map) #(2 3))
+
+      (serialize stream map)
+      (ok (equalp map (deserialize (make-in-memory-input-stream (get-output-stream-sequence stream))))))))
+
+(deftest test-serialize-array-map
+  (testing "should an array with map #(\"a\" {\"b\": \"c\"}) serialize to #(#x82 #x61 #x61 #xa1 #x61 #x62 #x61 #x63)"
+    (let ((stream (make-in-memory-output-stream))
+	  (map (make-hash-table :test 'equal)))
+      (setf (gethash "b" map) "c")
+
+      (serialize stream `#(1 ,map))
+      (ok (equalp `#(1 ,map) (deserialize (make-in-memory-input-stream (get-output-stream-sequence stream))))))))
+
+(deftest test-serialize-map-large
+  (testing "should a map {\"a\": \"A\", \"b\": \"B\", \"c\": \"C\", \"d\": \"D\", \"e\": \"E\"}
+ serialize to #(#xa5 #x61 #x61 #x61 #x41 #x61 #x62 #x61 #x42 #x61 #x63 #x61 #x43 #x61 #x64 #x61 #x44 #x61 #x65 #x61 #x45)"
+    (let ((stream (make-in-memory-output-stream))
+	  (map (make-hash-table :test 'equal)))
+
+      (setf (gethash "a" map) "A")
+      (setf (gethash "b" map) "B")
+      (setf (gethash "c" map) "C")
+      (setf (gethash "d" map) "D")
+      (setf (gethash "e" map) "E")
+
+      (serialize stream map)
+      (ok (equalp map (deserialize (make-in-memory-input-stream (get-output-stream-sequence stream))))))))
