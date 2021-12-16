@@ -157,3 +157,16 @@
       (serialize stream (make-instance 'simple-value :value 255))
       (ok (equalp #(#xf8 #xff) (get-output-stream-sequence stream))))))
 
+;; TODO: Add serialization for common tags
+
+(deftest test-serialize-empty-bytevector
+  (testing "should an empty byte array serialize to #(#x40)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream (make-array 0 :element-type '(unsigned-byte 8)))
+      (ok (equalp #(#x40) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-populated-bytevector
+  (testing "should byte array #(#x01 #x02 #x03 #x04) serialize to #(#x44 #x01 #x02 #x03 #x04)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream (make-array 4 :element-type '(unsigned-byte 8) :initial-contents #(#x01 #x02 #x03 #x04)))
+      (ok (equalp #(#x44 #x01 #x02 #x03 #x04) (get-output-stream-sequence stream))))))
