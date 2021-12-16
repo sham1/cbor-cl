@@ -76,3 +76,45 @@
     (let ((stream (make-in-memory-output-stream)))
       (serialize stream 18446744073709551615)
       (ok (equalp #(#x1b #xff #xff #xff #xff #xff #xff #xff #xff) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize-18446744073709551616
+  (testing "should 18446744073709551616 serialize to #(#xc2 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream 18446744073709551616)
+      (ok (equalp #(#xc2 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize--18446744073709551616
+  (testing "should -18446744073709551616 serialize to #(#x3b #xff #xff #xff #xff #xff #xff #xff #xff)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream -18446744073709551616)
+      (ok (equalp #(#x3b #xff #xff #xff #xff #xff #xff #xff #xff) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize--18446744073709551617
+  (testing "should -18446744073709551617 serialize to #(#xc3 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream -18446744073709551617)
+      (ok (equalp #(#xc3 #x49 #x01 #x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize--1
+  (testing "should -1 serialize to #(#x20)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream -1)
+      (ok (equalp #(#x20) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize--10
+  (testing "should -10 serialize to #(#x29)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream -10)
+      (ok (equalp #(#x29) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize--100
+  (testing "should -100 serialize to #(#x38 #x63)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream -100)
+      (ok (equalp #(#x38 #x63) (get-output-stream-sequence stream))))))
+
+(deftest test-serialize--1000
+  (testing "should -1000 serialize to #(#x39 #x03 #xe7)"
+    (let ((stream (make-in-memory-output-stream)))
+      (serialize stream -1000)
+      (ok (equalp #(#x39 #x03 #xe7) (get-output-stream-sequence stream))))))
